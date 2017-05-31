@@ -34,7 +34,7 @@ void HC05_Sta_Show(void)
 int main(void)
  {	 
 	u8 t;
-	u16 show_voltage;
+	u8 show_voltage;
 	u8 key;
 	u8 sendmask=0;
 	u8 sendcnt=0;
@@ -85,6 +85,26 @@ int main(void)
 	HC05_Role_Show();	  
  	while(1) 
 	{		
+		
+		adcx=Get_Adc_Average(ADC_Channel_1,10);
+		LCD_ShowxNum(156,260,adcx,4,16,0);//显示ADC的值
+		temp=(float)adcx*(3.3/4096);
+		adcx=temp;
+		LCD_ShowxNum(156,280,adcx,1,16,0);//显示电压值
+	  show_voltage = (float)adcx;
+		temp-=adcx;
+		
+		show_voltage += temp;
+
+		temp*=1000;
+		LCD_ShowxNum(172,280,temp,3,16,0X80);
+		
+		
+				LCD_ShowxNum(156,300,show_voltage,5,16,0);
+		
+		LED0=!LED0;
+		
+	
 		key=KEY_Scan(0);
 		if(key==WKUP_PRES)						//切换模块主从设置
 		{
@@ -105,15 +125,19 @@ int main(void)
 			if(sendmask==0)LCD_Fill(30+40,160,240,160+16,WHITE);//清除显示
 		}
 		
-		else delay_ms(10);
+		else delay_ms(5);
 		
 		if(t==50)
 		{
 			if(sendmask)					//定时发送
 			{
-				sprintf((char*)sendbuf,"ALIENTEK HC05 %d\r\n",sendcnt);
-	  			LCD_ShowString(30+40,160,200,16,16,sendbuf);	//显示发送数据	
-				u2_printf("ALIENTEK HC05 %d\r\n",sendcnt);		//发送到蓝牙模块
+				//sprintf((char*)sendbuf,"ALIENTEK HC05 %d Voltage is %d\r\n",sendcnt,show_voltage);
+				sprintf((char*)sendbuf,"Voltage on PA1 is %d\r\n",show_voltage);
+				
+	  			//LCD_ShowString(30+40,160,200,16,16,show_voltage);	//显示发送数据
+				 LCD_ShowString(30+40,160,200,16,16,sendbuf);
+				u2_printf("Voltage on PA1 is %d\r\n",show_voltage);		//发送到蓝牙模块
+			//	u2_printf("ALIENTEK HC05 %d\r\n",show_voltage);
 				sendcnt++;
 				if(sendcnt>99)sendcnt=0;
 			}
@@ -136,27 +160,6 @@ int main(void)
 		}	 															     				   
 		t++;	
 		
-		
-		
-		
-		
-				adcx=Get_Adc_Average(ADC_Channel_1,10);
-		LCD_ShowxNum(156,260,adcx,4,16,0);//显示ADC的值
-		temp=(float)adcx*(3.3/4096);
-		adcx=temp;
-		LCD_ShowxNum(156,280,adcx,1,16,0);//显示电压值
-	  show_voltage = (float)adcx;
-		temp-=adcx;
-		
-		show_voltage += temp;
-
-		temp*=1000;
-		LCD_ShowxNum(172,280,temp,3,16,0X80);
-		
-		
-				LCD_ShowxNum(156,300,show_voltage,5,16,0);
-		
-		LED0=!LED0;
 		//delay_ms(250);
 		
 		
