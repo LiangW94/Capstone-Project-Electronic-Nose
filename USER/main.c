@@ -34,7 +34,6 @@ void HC05_Sta_Show(void)
 int main(void)
  {	 
 	u8 t;
-	u8 show_voltage;
 	u8 key;
 	u8 sendmask=0;
 	u8 sendcnt=0;
@@ -43,6 +42,8 @@ int main(void)
 	 
 	u16 adcx;
 	float temp;
+	//u16 show_voltage;
+	u16 voltage_send;
 
 	 
 	delay_init();	    	 //延时函数初始化	  
@@ -74,8 +75,8 @@ int main(void)
 	
 	LCD_ShowString(30,90,200,16,16,"WK_UP:ROLE KEY0:SEND/STOP");  
 	LCD_ShowString(30,110,200,16,16,"ATK-HC05 Standby!");  
-  	LCD_ShowString(30,160,200,16,16,"Send:");	
-	LCD_ShowString(30,180,200,16,16,"Receive:");	
+  	LCD_ShowString(10,160,200,16,16,"Send:");	
+	LCD_ShowString(10,180,200,16,16,"Receive:");	
 	
 	POINT_COLOR=BLUE;//设置字体为蓝色
 	LCD_ShowString(60,260,200,16,16,"ADC_CH1_VAL:");	      
@@ -85,25 +86,25 @@ int main(void)
 	HC05_Role_Show();	  
  	while(1) 
 	{		
-		
 		adcx=Get_Adc_Average(ADC_Channel_1,10);
+    voltage_send = adcx;
 		LCD_ShowxNum(156,260,adcx,4,16,0);//显示ADC的值
 		temp=(float)adcx*(3.3/4096);
-		adcx=temp;
-		LCD_ShowxNum(156,280,adcx,1,16,0);//显示电压值
-	  show_voltage = (float)adcx;
-		temp-=adcx;
 		
-		show_voltage += temp;
+			//	show_voltage = temp;
+		
+		adcx=temp;
+		
+		LCD_ShowxNum(156,280,adcx,1,16,0);//显示电压值
+	  
+		temp-=adcx;
 
 		temp*=1000;
 		LCD_ShowxNum(172,280,temp,3,16,0X80);
 		
-		
-				LCD_ShowxNum(156,300,show_voltage,5,16,0);
-		
+				//LCD_ShowxNum(156,300,show_voltage,5,16,0);
+				
 		LED0=!LED0;
-		
 	
 		key=KEY_Scan(0);
 		if(key==WKUP_PRES)						//切换模块主从设置
@@ -125,18 +126,20 @@ int main(void)
 			if(sendmask==0)LCD_Fill(30+40,160,240,160+16,WHITE);//清除显示
 		}
 		
-		else delay_ms(5);
+		else delay_ms(10);
 		
-		if(t==50)
+		//if(t==50)
+		if(t==1)
 		{
 			if(sendmask)					//定时发送
 			{
 				//sprintf((char*)sendbuf,"ALIENTEK HC05 %d Voltage is %d\r\n",sendcnt,show_voltage);
-				sprintf((char*)sendbuf,"Voltage on PA1 is %d\r\n",show_voltage);
+				sprintf((char*)sendbuf,"ADC on PA1: %d \r\n",voltage_send);
 				
 	  			//LCD_ShowString(30+40,160,200,16,16,show_voltage);	//显示发送数据
-				 LCD_ShowString(30+40,160,200,16,16,sendbuf);
-				u2_printf("Voltage on PA1 is %d\r\n",show_voltage);		//发送到蓝牙模块
+				 LCD_ShowString(10+40,160,200,16,16,sendbuf);
+				//u2_printf("ADC voltage on PA1 is%d  convert to voltage: *3.3/4096\r\n",voltage_send);		//发送到蓝牙模块
+				u2_printf("%d\r\n",voltage_send);
 			//	u2_printf("ALIENTEK HC05 %d\r\n",show_voltage);
 				sendcnt++;
 				if(sendcnt>99)sendcnt=0;
